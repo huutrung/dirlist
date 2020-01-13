@@ -33,18 +33,18 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int level)
 	{
 		if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
-			TCHAR* tmpDir;
-			tmpDir = new TCHAR [MAX_PATH];
-			StringCchCopy(tmpDir, MAX_PATH, pathOfDirectory);
-			StringCchCat(tmpDir, MAX_PATH, TEXT("\\"));
-			StringCchCat(tmpDir, MAX_PATH, ffd.cFileName);
+			TCHAR* curDir;
+			curDir = new TCHAR [MAX_PATH];
+			StringCchCopy(curDir, MAX_PATH, pathOfDirectory);
+			StringCchCat(curDir, MAX_PATH, TEXT("\\"));
+			StringCchCat(curDir, MAX_PATH, ffd.cFileName);
 
 			if (_tcscmp(ffd.cFileName, _T(".")) && _tcscmp(ffd.cFileName, _T("..")))
 			{
 				_tprintf(TEXT("%*s%s  DIR\n"), level * 4, "", ffd.cFileName);
-				ListFilesInDirectory(tmpDir, level + 1);
+				ListFilesInDirectory(curDir, level + 1);
 			}
-			delete tmpDir;
+			delete curDir;
 		}
 		else
 		{
