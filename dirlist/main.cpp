@@ -2,6 +2,8 @@
 #include <tchar.h> 
 #include <stdio.h>
 #include <strsafe.h>
+#include <io.h>
+#include <fcntl.h>
 #pragma comment(lib, "User32.lib")
 
 void DisplayErrorBox(LPTSTR lpszFunction);
@@ -23,7 +25,6 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int level)
 	if (INVALID_HANDLE_VALUE == hFind) 
 	{
 		DisplayErrorBox(TEXT("FindFirstFile"));
-//		return dwError;
 	} 
 
 	// List all the files in the directory with some info about them.
@@ -32,8 +33,6 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int level)
 	{
 		if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
-//			printf("%*s", level * 4, "");
-			_tprintf(TEXT("%*s%s  DIR\n"), level * 4, "", ffd.cFileName);
 			TCHAR* tmpDir;
 			tmpDir = new TCHAR [MAX_PATH];
 			StringCchCopy(tmpDir, MAX_PATH, pathOfDirectory);
@@ -41,14 +40,16 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int level)
 			StringCchCat(tmpDir, MAX_PATH, ffd.cFileName);
 
 			if (_tcscmp(ffd.cFileName, _T(".")) && _tcscmp(ffd.cFileName, _T("..")))
+			{
+				_tprintf(TEXT("%*s%s  DIR\n"), level * 4, "", ffd.cFileName);
 				ListFilesInDirectory(tmpDir, level + 1);
+			}
 			delete tmpDir;
 		}
 		else
 		{
 			filesize.LowPart = ffd.nFileSizeLow;
 			filesize.HighPart = ffd.nFileSizeHigh;
-//			printf("%*s", level * 4, "");
 			_tprintf(TEXT("%*s%s   %ld bytes\n"), level*4, "", ffd.cFileName, filesize.QuadPart);
 		}
 	}
@@ -71,6 +72,9 @@ int _tmain(int argc, TCHAR *argv[])
 	size_t length_of_arg;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	DWORD dwError=0;
+
+	_setmode(_fileno(stdin), _O_U16TEXT);
+	_setmode(_fileno(stdout), _O_U16TEXT);
 
 	// If the directory is not specified as a command-line argument,
 	// print usage.
