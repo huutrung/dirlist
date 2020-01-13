@@ -6,9 +6,14 @@
 #include <fcntl.h>
 #pragma comment(lib, "User32.lib")
 
-void DisplayErrorBox(LPTSTR lpszFunction);
+typedef struct MyData {
+	TCHAR* pathOfDirectory;
+	int idepth;
+} MYDATA, *PMYDATA;
 
-void ListFilesInDirectory(TCHAR* pathOfDirectory, int idepth)
+void DisplayErrorBox(LPTSTR lpszFunction);
+DWORD WINAPI MyThreadFunction( LPVOID lpParam );
+DWORD WINAPI ListFilesInDirectory(LPVOID lpParam)
 {
 	WIN32_FIND_DATA ffd;
 	LARGE_INTEGER filesize;
@@ -17,7 +22,11 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int idepth)
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	DWORD dwError=0;
 
-	StringCchCopy(szDir, MAX_PATH, pathOfDirectory);
+	// Extract data from lpParam here
+	PMYDATA param = (PMYDATA)lpParam;
+
+	// Store pathToDirectory to a new variable
+	StringCchCopy(szDir, MAX_PATH, param->pathOfDirectory);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
 	hFind = FindFirstFile(szDir, &ffd);
@@ -35,14 +44,15 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int idepth)
 		{
 			TCHAR* curDir;
 			curDir = new TCHAR [MAX_PATH];
-			StringCchCopy(curDir, MAX_PATH, pathOfDirectory);
+			StringCchCopy(curDir, MAX_PATH, param->pathOfDirectory);
 			StringCchCat(curDir, MAX_PATH, TEXT("\\"));
 			StringCchCat(curDir, MAX_PATH, ffd.cFileName);
 
 			if (_tcscmp(ffd.cFileName, _T(".")) && _tcscmp(ffd.cFileName, _T("..")))
 			{
-				_tprintf(TEXT("%*s%s  DIR\n"), idepth * 4, "", ffd.cFileName);
-				ListFilesInDirectory(curDir, idepth + 1);
+				_tprintf(TEXT("%*s%s  DIR\n"), param->idepth * 4, "", ffd.cFileName);
+				//Need to modify with thread create
+				ListFilesInDirectory(curDir, param->idepth + 1);
 			}
 			delete curDir;
 		}
@@ -50,7 +60,7 @@ void ListFilesInDirectory(TCHAR* pathOfDirectory, int idepth)
 		{
 			filesize.LowPart = ffd.nFileSizeLow;
 			filesize.HighPart = ffd.nFileSizeHigh;
-			_tprintf(TEXT("%*s%s   %ld bytes\n"), idepth*4, "", ffd.cFileName, filesize.QuadPart);
+			_tprintf(TEXT("%*s%s   %ld bytes\n"), param->idepth*4, "", ffd.cFileName, filesize.QuadPart);
 		}
 	}
 	while (FindNextFile(hFind, &ffd) != 0);
