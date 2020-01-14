@@ -4,12 +4,9 @@
 #include <strsafe.h>
 #include <io.h>
 #include <fcntl.h>
+#include <vector>
+using namespace std;
 #pragma comment(lib, "User32.lib")
-
-typedef struct MyData {
-	TCHAR* pathOfDirectory;
-	int idepth;
-} MYDATA, *PMYDATA;
 
 void DisplayErrorBox(LPTSTR lpszFunction);
 
@@ -21,12 +18,15 @@ DWORD WINAPI ListFilesInDirectory(LPVOID lpParam)
 	size_t length_of_arg;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	DWORD dwError=0;
+	vector<TCHAR*> vChildDirectory;
+
+	DWORD curThreadId = GetCurrentThreadId();
 
 	// Extract data from lpParam here
-	PMYDATA param = (PMYDATA)lpParam;
+	TCHAR* param = (TCHAR*)lpParam;
 
 	// Store pathToDirectory to a new variable
-	StringCchCopy(szDir, MAX_PATH, param->pathOfDirectory);
+	StringCchCopy(szDir, MAX_PATH, param);
 	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
 	hFind = FindFirstFile(szDir, &ffd);
@@ -44,48 +44,22 @@ DWORD WINAPI ListFilesInDirectory(LPVOID lpParam)
 		{
 			TCHAR* curDir;
 			curDir = new TCHAR [MAX_PATH];
-			StringCchCopy(curDir, MAX_PATH, param->pathOfDirectory);
+			StringCchCopy(curDir, MAX_PATH, param);
 			StringCchCat(curDir, MAX_PATH, TEXT("\\"));
 			StringCchCat(curDir, MAX_PATH, ffd.cFileName);
-
+			
 			if (_tcscmp(ffd.cFileName, _T(".")) && _tcscmp(ffd.cFileName, _T("..")))
 			{
-				_tprintf(TEXT("%*s%s  DIR\n"), param->idepth * 4, "", ffd.cFileName);
-
-				//Need to modify with thread create
-				PMYDATA childDirectory = (PMYDATA) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY,
-					sizeof(MYDATA));;
-				childDirectory->pathOfDirectory = curDir;
-				childDirectory->idepth = param->idepth + 1;
-				DWORD   dwThreadId;
-				HANDLE hThread = CreateThread( 
-					NULL,                   // default security attributes
-					0,                      // use default stack size  
-					ListFilesInDirectory,       // thread function name
-					childDirectory,          // argument to thread function 
-					0,                      // use default creation flags 
-					&dwThreadId);   // returns the thread identifier
-				
-				// Check the return value for success.
-				// If CreateThread fails, terminate execution. 
-				// This will automatically clean up threads and memory. 
-
-				if (hThread == NULL) 
-				{
-					DisplayErrorBox(TEXT("CreateThread"));
-					ExitProcess(3);
-				}
-
-				WaitForSingleObject(hThread, INFINITE);
-				CloseHandle(hThread);
+				_tprintf(TEXT("Thread [%d]: %s  DIR\n"), curThreadId, ffd.cFileName);
+				vChildDirectory.push_back(curDir);
 			}
-			delete curDir;
+//			delete curDir;
 		}
 		else
 		{
 			filesize.LowPart = ffd.nFileSizeLow;
 			filesize.HighPart = ffd.nFileSizeHigh;
-			_tprintf(TEXT("%*s%s   %ld bytes\n"), param->idepth*4, "", ffd.cFileName, filesize.QuadPart);
+			_tprintf(TEXT("Thread [%d]: %s   %ld bytes\n"), curThreadId, ffd.cFileName, filesize.QuadPart);
 		}
 	}
 	while (FindNextFile(hFind, &ffd) != 0);
@@ -97,6 +71,50 @@ DWORD WINAPI ListFilesInDirectory(LPVOID lpParam)
 	}
 
 	FindClose(hFind);
+
+	int lengthOfVChildDirectory = vChildDirectory.size();
+	
+	if (lengthOfVChildDirectory > 0)
+	{
+		DWORD* dwThreadIdArray = new DWORD [lengthOfVChildDirectory];
+		HANDLE* hThreadArray = new HANDLE [lengthOfVChildDirectory];
+
+		for (int i = 0; i < lengthOfVChildDirectory; i++)
+		{
+			hThreadArray[i] = CreateThread( 
+				NULL,                   // default security attributes
+				0,                      // use default stack size  
+				ListFilesInDirectory,       // thread function name
+				vChildDirectory[i],          // argument to thread function 
+				0,                      // use default creation flags 
+				&dwThreadIdArray[i]);   // returns the thread identifier 
+
+
+			// Check the return value for success.
+			// If CreateThread fails, terminate execution. 
+			// This will automatically clean up threads and memory.
+			if (hThreadArray[i] == NULL) 
+			{
+				DisplayErrorBox(TEXT("CreateThread"));
+				ExitProcess(3);
+			}
+		}// End of thread creation loop
+
+		// Wait until all threads have terminated.
+
+		WaitForMultipleObjects(lengthOfVChildDirectory, hThreadArray, TRUE, INFINITE);
+
+		// Close all thread handles and free memory allocations.
+
+		for(int i=0; i<lengthOfVChildDirectory; i++)
+		{
+			CloseHandle(hThreadArray[i]);
+			delete vChildDirectory[i];
+		}
+
+		delete dwThreadIdArray;
+		delete hThreadArray;
+	}
 }
 
 int _tmain(int argc, TCHAR *argv[])
@@ -133,12 +151,9 @@ int _tmain(int argc, TCHAR *argv[])
 
 	_tprintf(TEXT("\nTarget directory is %s\n\n"), argv[1]);
 
-	PMYDATA rootDirectory = (PMYDATA) HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY,
-		sizeof(MYDATA));
-
-	rootDirectory->pathOfDirectory = argv[1];
-	rootDirectory->idepth = 0;
+	TCHAR* rootDirectory = argv[1];
 	DWORD   dwThreadId;
+
 	HANDLE hThread = CreateThread( 
 		NULL,                   // default security attributes
 		0,                      // use default stack size  
@@ -159,8 +174,6 @@ int _tmain(int argc, TCHAR *argv[])
 
 	WaitForSingleObject(hThread, INFINITE);
 	CloseHandle(hThread);
-	// Prepare string for use with FindFile functions.  First, copy the
-	// string to a buffer, then append '\*' to the directory name.
 
 	return 0;
 }

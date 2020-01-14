@@ -5,6 +5,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dirlist", "dirlist\dirlist.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "thread", "thread\thread.vcproj", "{7C0E989B-DB56-4BA1-9206-F8CF5DB1EA44}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dirlist-thread", "dirlist-thread\dirlist-thread.vcproj", "{8499F401-72E1-4F55-982B-17AB3EA11918}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dirlist-thread-2", "dirlist-thread-2\dirlist-thread-2.vcproj", "{E923A406-438D-412A-98AB-EEBA04F82A5B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +23,14 @@ Global
 		{7C0E989B-DB56-4BA1-9206-F8CF5DB1EA44}.Debug|Win32.Build.0 = Debug|Win32
 		{7C0E989B-DB56-4BA1-9206-F8CF5DB1EA44}.Release|Win32.ActiveCfg = Release|Win32
 		{7C0E989B-DB56-4BA1-9206-F8CF5DB1EA44}.Release|Win32.Build.0 = Release|Win32
+		{8499F401-72E1-4F55-982B-17AB3EA11918}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8499F401-72E1-4F55-982B-17AB3EA11918}.Debug|Win32.Build.0 = Debug|Win32
+		{8499F401-72E1-4F55-982B-17AB3EA11918}.Release|Win32.ActiveCfg = Release|Win32
+		{8499F401-72E1-4F55-982B-17AB3EA11918}.Release|Win32.Build.0 = Release|Win32
+		{E923A406-438D-412A-98AB-EEBA04F82A5B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E923A406-438D-412A-98AB-EEBA04F82A5B}.Debug|Win32.Build.0 = Debug|Win32
+		{E923A406-438D-412A-98AB-EEBA04F82A5B}.Release|Win32.ActiveCfg = Release|Win32
+		{E923A406-438D-412A-98AB-EEBA04F82A5B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

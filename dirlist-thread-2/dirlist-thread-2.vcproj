@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="dirlist-thread"
-	ProjectGUID="{8499F401-72E1-4F55-982B-17AB3EA11918}"
-	RootNamespace="dirlistthread"
+	Name="dirlist-thread-2"
+	ProjectGUID="{E923A406-438D-412A-98AB-EEBA04F82A5B}"
+	RootNamespace="dirlistthread2"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -171,7 +171,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dirlist-thread.cpp"
+				RelativePath=".\dirlist-thread-2.cpp"
 				>
 			</File>
 		</Filter>
